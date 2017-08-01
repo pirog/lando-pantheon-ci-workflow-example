@@ -30,6 +30,7 @@ script:
   - lando version
   - lando composer install && lando npm install
   - cd /home/travis/build/serundeputy/ci-tutorial/
+  - cat /etc/group
   - cp travis/settings.local.php sites/default/settings.local.php
   - lando terminus backup:create ci-tutorial.dev --element=db
   - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
