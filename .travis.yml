@@ -26,4 +26,4 @@ script:
 - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
 - lando db-import db.sql.gz
 # Chekc if we can bootstrap the site.
-- lando drush st | grep Successful
+- lando drush cr | grep "rebuild complete."
