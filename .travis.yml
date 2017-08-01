@@ -8,7 +8,7 @@ before_install:
 
   # Install lando
   - sudo apt-get -y update
-  - sudo apt-get -y install iptables cgroup-bin bridge-utils curl
+  - sudo apt-get -y install curl
   #- curl -fsSL -o /tmp/kalabox.deb "http://installer.kalabox.io/kalabox-latest-dev.deb"
   # - git clone https://github.com/kalabox/lando.git /home/travis/lando
   # - cd /home/travis/lando && npm install
