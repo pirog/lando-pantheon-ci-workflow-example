@@ -1,0 +1,66 @@
+language: php
+php:
+  - '7.0'
+services:
+  - docker
+
+before_install:
+
+  # Install lando
+  - sudo apt-get -y update
+  - sudo apt-get -y install iptables cgroup-bin bridge-utils curl
+  #- curl -fsSL -o /tmp/kalabox.deb "http://installer.kalabox.io/kalabox-latest-dev.deb"
+  # - git clone https://github.com/kalabox/lando.git /home/travis/lando
+  # - cd /home/travis/lando && npm install
+  # - sudo ln -s /home/travis/lando/bin/lando.js /usr/local/bin/lando
+  - curl -fsSL -o /tmp/lando-latest.deb http://installer.kalabox.io/lando-latest-dev.deb
+  - sudo dpkg -i /tmp/lando-latest.deb && sudo apt-get install -f
+
+# install:
+#
+#   # Install composer deps
+#   - composer install
+
+script:
+
+  # Install dependencies
+  - lando start -- -v
+
+  # Install Drupal and check for bootstrap
+  - lando version
+  # - pwd
+  # - ls /home/
+  # - ls /home/travis
+  # - ls /home/travis/builds
+  # - ls /home/travis/build
+  - cd /home/travis/build/serundeputy/ci-tutorial/web
+  #- pwd
+  - cp travis/settings.local.php sites/default/settings.local.php
+  - lando.dev terminus backup:create ci-tutorial.dev --element=db
+  - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
+  - lando db-import db.sql.gz
+  #- lando drush st | grep Successful
+  #- lando drush cr | grep "Cache rebuild complete."
+
+  # Run code and styling checks
+  #- lando composer test
+
+
+  # # Run Drush to test if we can bootstrap the site
+  # - cd public
+  # - kbox drush updatedb -y
+  # - kbox rr -y
+  # - kbox drush features-revert-all -y
+  # - kbox drush features-revert-all -y
+  # - kbox drush status | grep Successful
+  # - kbox drush cc all | grep "'all' cache was cleared. "
+  #
+  # # Run some sanity checks
+  # - kbox node --version
+  # - kbox npm --version
+  # - kbox bower --version
+  # - kbox gulp --version
+  # - kbox bower --version
+  # - kbox composer --version
+  # - kbox drush version
+  # - kbox platform
