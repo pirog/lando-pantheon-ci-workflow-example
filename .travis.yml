@@ -15,15 +15,21 @@ before_install:
 - sudo dpkg -i /tmp/lando-latest.deb
 
 script:
+# start lando and perform some setup tasks.
 - lando start -- -v
 - lando version
 - cd /home/travis/build/serundeputy/ci-tutorial/
 - lando composer install
 - cp travis/settings.local.php sites/default/settings.local.php
+
 # Get the DB and install.
 - lando terminus auth:login --machine-token=$TRAVISCITOKEN
 - lando terminus backup:create ci-tutorial.dev --element=db
 - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
 - lando db-import db.sql.gz
-# Chekc if we can bootstrap the site.
+
+# Check if we can bootstrap the site.
 - lando drush cr | grep "rebuild complete."
+
+# Run phplint codecheck.
+- lando composer test

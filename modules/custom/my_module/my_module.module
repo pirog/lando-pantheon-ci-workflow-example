@@ -1,0 +1,8 @@
+<?php
+
+function we_Did_it() {
+  // hello
+  print "goo";
+
+  return;
+}

@@ -53,7 +53,10 @@
           "Drupal\\Core\\Composer\\Composer::ensureHtaccess"
         ],
         "post-package-install": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
-        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup"
+        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
+        "test": [
+          "./vendor/bin/phplint --configuration=./.phplint.yml --no-cache --exclude=contrib modules/custom"
+        ]
     },
     "repositories": [
         {
