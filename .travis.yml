@@ -1,62 +1,27 @@
 language: php
 php:
-  - '7.0'
+- '7.0'
 services:
-  - docker
+- docker
 
+env:
+  global:
+    secure: a2uFRYTdRT6KqTTHSp97pqp+Dna1tQY9i5FVNHcBlwksEpViVXI3TxoXh1sB4szcqVflxrjnpYWycy4RTKYWr+Nhv4yMV5FmrLQ8iJM7MCSEQYP14HsQXTj6B8pA9sMFq7+qIgzOnJ/BwUh4YTrSAFXfeulE4PA0C+Nz55TUCqaB2B0Hvq6lD6gdQade99Yqeh6zeXZbtAaB0sEjZmQ/idGyC0vmSxTbdCOc9AzPwszdCrDxYJ+VCX+OjIgH+Y4i2NddMtlOs/mrHRck4xxMfjVuTLtLeUQlPaXIJM2MHQU9KY9itZDsNZE3bmJF4PwZ/7Yw7M4peR73t+ZxTSpxshKVovmXkdjeqzMiduvu7cpUJzmjCtEbrfWNesVtnwz2RfxgeEhZhpjb6UhTP2FEwD7L0P5gzQPgqvxNBLEBleWVVQrNuD0a4oEI+YP1evcjEnMRtlfUqskb5N379HIjZRmqthrle+V1fvFLqWA67hgIc5gz22DRA1l+RA6alCiGtUQJ92okc3/FVjNpR9OE2viWRc5kilP+xQX0tlOpRd+pmb185KCNvAzPTowpX5nI9SmJrJlNeFJbkk2A75TdiSdYfZEJkKECrn8yM6Sli+M0gr8IJ26WMMX58mvXVXr5NM9ve1iOzru24RZhuur85wgj+kmB1rS5uGCWo6fHG3A=
 before_install:
-
-  # Install lando
-  - cat /etc/group
-  - sudo apt-get -y update
-  - sudo apt-get -y install cgroup-bin curl
-  #- curl -fsSL -o /tmp/kalabox.deb "http://installer.kalabox.io/kalabox-latest-dev.deb"
-  # - git clone https://github.com/kalabox/lando.git /home/travis/lando
-  # - cd /home/travis/lando && npm install
-  # - sudo ln -s /home/travis/lando/bin/lando.js /usr/local/bin/lando
-  - curl -fsSL -o /tmp/lando-latest.deb http://installer.kalabox.io/lando-latest-dev.deb
-  - sudo dpkg -i /tmp/lando-latest.deb && sudo apt-get install -f
-
-# install:
-#
-#   # Install composer deps
-#   - composer install
-
+- cat /etc/group
+- sudo apt-get -y update
+- sudo apt-get -y install cgroup-bin curl
+- curl -fsSL -o /tmp/lando-latest.deb http://installer.kalabox.io/lando-latest-dev.deb
+- sudo dpkg -i /tmp/lando-latest.deb && sudo apt-get install -f
 script:
-
-  # Install dependencies
-  - lando start -- -v
-
-  # Install Drupal and check for bootstrap
-  - lando version
-  - lando composer install && lando npm install
-  - cd /home/travis/build/serundeputy/ci-tutorial/
-  - cp travis/settings.local.php sites/default/settings.local.php
-  - lando terminus backup:create ci-tutorial.dev --element=db
-  - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
-  - lando db-import db.sql.gz
-  - lando drush st | grep Successful
-  #- lando drush cr | grep "Cache rebuild complete."
-
-  # Run code and styling checks
-  #- lando composer test
-
-
-  # # Run Drush to test if we can bootstrap the site
-  # - cd public
-  # - kbox drush updatedb -y
-  # - kbox rr -y
-  # - kbox drush features-revert-all -y
-  # - kbox drush features-revert-all -y
-  # - kbox drush status | grep Successful
-  # - kbox drush cc all | grep "'all' cache was cleared. "
-  #
-  # # Run some sanity checks
-  # - kbox node --version
-  # - kbox npm --version
-  # - kbox bower --version
-  # - kbox gulp --version
-  # - kbox bower --version
-  # - kbox composer --version
-  # - kbox drush version
-  # - kbox platform
+- lando start -- -v
+- lando version
+- lando composer install && lando npm install
+- cd /home/travis/build/serundeputy/ci-tutorial/
+- cp travis/settings.local.php sites/default/settings.local.php
+- lando terminus auth:login --machine-token=TRAVISCITOKEN
+- lando terminus auth:whoami 
+# - lando terminus backup:create ci-tutorial.dev --element=db
+# - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
+# - lando db-import db.sql.gz
+# - lando drush st | grep Successful
