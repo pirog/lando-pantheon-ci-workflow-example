@@ -17,12 +17,11 @@ before_install:
 script:
 - lando start -- -v
 - lando version
-- lando composer install && lando npm install
 - cd /home/travis/build/serundeputy/ci-tutorial/
+- lando composer install && lando npm install
 - cp travis/settings.local.php sites/default/settings.local.php
 - lando terminus auth:login --machine-token=$TRAVISCITOKEN
-- lando terminus auth:whoami
-# - lando terminus backup:create ci-tutorial.dev --element=db
-# - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
-# - lando db-import db.sql.gz
-# - lando drush st | grep Successful
+- lando terminus backup:create ci-tutorial.dev --element=db
+- lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
+- lando db-import db.sql.gz
+- lando drush st | grep Successful
