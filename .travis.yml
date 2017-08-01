@@ -28,13 +28,8 @@ script:
 
   # Install Drupal and check for bootstrap
   - lando version
-  # - pwd
-  # - ls /home/
-  # - ls /home/travis
-  # - ls /home/travis/builds
-  # - ls /home/travis/build
+  - lando composer install && lando npm install
   - cd /home/travis/build/serundeputy/ci-tutorial/
-  #- pwd
   - cp travis/settings.local.php sites/default/settings.local.php
   - lando.dev terminus backup:create ci-tutorial.dev --element=db
   - lando terminus backup:get ci-tutorial.dev --element=db --to=/app/db.sql.gz
