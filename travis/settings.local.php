@@ -1,10 +1,10 @@
 <?php
 
 $databases['default']['default'] = array (
-  'database' => 'databasename',
-  'username' => 'sqlusername',
-  'password' => 'sqlpassword',
-  'host' => 'localhost',
+  'database' => 'pantheon',
+  'username' => 'pantheon',
+  'password' => 'pantheon',
+  'host' => 'database',
   'port' => '3306',
   'driver' => 'mysql',
   'prefix' => '',
