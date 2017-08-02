@@ -33,3 +33,6 @@ script:
 
 # Run phplint codecheck.
 - lando composer test
+
+# Run Behat tests.
+- lando composer behat
