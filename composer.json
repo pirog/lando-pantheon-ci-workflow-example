@@ -58,7 +58,7 @@
           "./vendor/bin/phplint --configuration=./.phplint.yml --no-cache --exclude=contrib modules/custom"
         ],
         "behat": [
-          "cd tests && ../vendor/bin/behat --config=behat.yml --tags @gff,@loggedin"
+          "cd tests && ../vendor/bin/behat --config=behat.yml --tags @homepage,@loggedin"
         ]
     },
     "repositories": [

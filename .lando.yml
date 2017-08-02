@@ -5,8 +5,3 @@ config:
   env: dev
   site: ci-tutorial
   id: 8dc769da-8a78-4ffc-9820-334f9f804055
-
-tooling:
-  behat:
-    service: appserver
-    description: "Run behat tests"
