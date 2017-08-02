@@ -56,6 +56,9 @@
         "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
         "test": [
           "./vendor/bin/phplint --configuration=./.phplint.yml --no-cache --exclude=contrib modules/custom"
+        ],
+        "behat": [
+          "cd tests && ../vendor/bin/behat --config=behat.yml --tags @gff,@loggedin"
         ]
     },
     "repositories": [
@@ -65,6 +68,12 @@
         }
     ],
     "require-dev": {
-        "overtrue/phplint": "^0.2.4"
+        "overtrue/phplint": "^0.2.4",
+        "behat/behat": "^3.3",
+        "behat/mink": "^1.7",
+        "behat/mink-extension": "^2.2",
+        "behat/mink-goutte-driver": "^1.2",
+        "jcalderonzumba/mink-phantomjs-driver": "^0.3.3",
+        "drupal/drupal-extension": "^3.3"
     }
 }
