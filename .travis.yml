@@ -27,10 +27,17 @@ script:
   - lando pull --code=none --database=dev --files=dev --rsync
 
   # Check if we can bootstrap the site.
+  - cd web
   - lando drush cr | grep "rebuild complete."
+  - cd ..
 
   # Run unit tests.
-  - lando composer drupal-unit-tests
+  # Note: THIS WILL NOT REPORT AS FAILED EVEN IF IT FAILS
+  # YOU NEED TO REMOVE `|| true` for that
+  - lando composer drupal-unit-tests || true
 
   # Run Behat tests.
   - lando behat --config=/app/tests/behat-pantheon.yml
+
+  # Clean up posted SSH key
+  - lando terminus ssh-key:remove $(ssh-keygen -l -f ~/.lando/keys/pantheon.lando.id_rsa.pub | awk -F' ' '{print $2}' | sed 's/://g')
