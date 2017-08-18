@@ -1,0 +1,18 @@
+name: lando-pantheon-workflow
+recipe: pantheon
+config:
+  framework: drupal8
+  env: dev
+  site: lando-pantheon-workflow
+  id: 34775439-5546-46a8-936b-5e55dde4b462
+services:
+  appserver:
+    overrides:
+      services:
+        environment:
+          BEHAT_PARAMS: '{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://lando-pantheon-workflow.lndo.site/"}, "Drupal\\DrupalExtension" : {"drush" :   {  "root":  "/app/web" }}}}'
+tooling:
+  behat:
+    service: appserver
+    cmd:
+      - "/app/vendor/bin/behat"

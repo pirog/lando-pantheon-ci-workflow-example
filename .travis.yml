@@ -1,0 +1,36 @@
+language: php
+php:
+- '7.0'
+services:
+- docker
+
+# Encrypted variable for pantheon machine token
+env:
+  global:
+    secure: "WETOC8IRvuIC+TybdbWrJ90aD+/yxlRpr+wrIlsc1Ukn8pbzOlBVYUW0YBEmyaqSHpWNG6vKbIhfdzK/MmHuh3lw5TOmnEk/8/gBXMTu2RKrHfNKWs3stf07EP4ZDJhs5I7AmHjz1xjnadfKJg1/NDY3F2eVqaYArdyaM/lIPWJ1Xh7xq/TqEOt3v4LsRoBg+I79m4a+wAVcQN3/Ylm87sSsNdcPwXlZB5YS7VkzGJVSyoG+n6WGLwiEEY+euf9aGcLn+w2yFea9K9QcPndHIR28i6WCWS/j7F/qhYlw04eBcarvuQeTWCS5IsAF4GD2/wXH/CvREnohmilKPnNlBa4zHE7Heul2qAviJwoJ0AVeqsf9S81xHJfflffUqU7gQUythEXmTGN49PSp+vE2Z5+39RQk52a8tYLe24Z/4Fc64cQFOwSnapPpdTvsFGiz61G7NR04/jWVsx8b6/KNpSbKcc6coKFpPGjKyJgrguQ4wRyXVkIeAA7+OhUvQtss71iLX9QgXDZN9Uo9+dw/SXZWpiayiA+wR6adR7YEZTLjkZV46gQfxNXzucYGINuR62yjkJFeTtlEGc3zeQJqnvIoH1JfOTVgEYeh6vDElnAcrbrb7kxYdoPx+rp42UCvlWddLBC2yzWoKB2lT2VFAjP53WhpjZ0GWXMxvrOiE3k="
+
+# Install lando
+before_install:
+  - sudo apt-get -y update
+  - sudo apt-get -y install cgroup-bin curl
+  - curl -fsSL -o /tmp/lando-latest.deb http://installer.kalabox.io/lando-latest-dev.deb
+  - sudo dpkg -i /tmp/lando-latest.deb
+  - lando version
+
+# Do the lando magic
+script:
+
+  # Get our built out lando site running on travis
+  - lando start -- -v
+  - lando composer install
+  - lando terminus auth:login --machine-token=$PANTHEON_MACHINE_TOKEN
+  - lando pull --code=none --database=dev --files=dev --rsync
+
+  # Check if we can bootstrap the site.
+  - lando drush cr | grep "rebuild complete."
+
+  # Run unit tests.
+  - lando composer drupal-unit-tests
+
+  # Run Behat tests.
+  - lando behat --config=/app/tests/behat-pantheon.yml
