@@ -54,19 +54,34 @@ script:
       lando ssh -c "cd /tmp && git clone ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git pantheon_build"
       lando ssh -u root -c "rm -rf /tmp/pantheon_build/*"
       lando ssh -c "cp -rfa /app/* /tmp/pantheon_build/"
-      lando ssh -c "cp -rf /app/.gitignore /tmp/pantheon_build/.gitignore"
       lando ssh -c "git -C /tmp/pantheon_build fetch origin"
       lando ssh -c "git -C /tmp/pantheon_build branch -r"
       lando ssh -c "git -C /tmp/pantheon_build checkout $DEFAULT_ENV"
+      lando ssh -c "git -C /tmp/pantheon_build checkout .gitignore"
       lando ssh -c "git -C /tmp/pantheon_build add -A"
       lando ssh -c "git -C /tmp/pantheon_build commit -m '$TRAVIS_BUILD_NUMBER- $TRAVIS_COMMIT_MESSAGE' --allow-empty"
       lando ssh -c "git -C /tmp/pantheon_build push origin $DEFAULT_ENV"
     fi
 
+  # Spin up multidev branch
+    # pull pantheon git repo into a separate directory
+    # rm -rf /tmp/pantheon-build/*
+    # cp -rf $TRAVIS_REPO_ROOT/ /tmp/pantheon-build/
+    # git config setup
+    #- git config --global user.email "$GIT_EMAIL"
+    #- git config --global user.name "Circle CI"
+    #- git config --global core.fileMode false
+    # git add -A
+    # git commit -m "travis build whatever"
+    # git push origin multidevbranch
+    # run drush cim
+    # run drush dbupdate
+    # run drush cr
+
   # Clean up posted SSH key
   - lando terminus ssh-key:remove $(ssh-keygen -l -f ~/.lando/keys/pantheon.lando.id_rsa.pub | awk -F' ' '{print $2}' | sed 's/://g')
 
-# merge into dev via depoy script
+# merge into master via depoy script
 #deploy:
 #  provider: script
 #  script: scripts/deploy.sh $MULTIDEV_BRANCH
@@ -74,8 +89,8 @@ script:
 #      branch: master
 
 # the script does:
-# - terminus multidev:merge-to-dev $DEFAULT_ENV
-# - termius mulitdev:delete $DEFAULT_ENV
+# - terminus multidev:merge-to-dev $MULTIDEV_BRANCH
+# - termius mulitdev:delete $MULTIDEV_BRANCH
 # - terminus drush cim
 # - terminus drush updatedb
 # - terminus drush cr
