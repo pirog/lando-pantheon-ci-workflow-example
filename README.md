@@ -67,10 +67,11 @@ If you are interested in tweaking your setup check out the comments in your app'
 
 You will want to start by doing Steps 1 and 2 in the Travis [getting started docs](https://docs.travis-ci.com/user/getting-started/). We already have a pre-baked `.travis.yml` file for you so you don't need to worry about that unless you want to tweak it.
 
-Finally, set your Pantheon machine token as an environment variable [via the Travis UI](https://docs.travis-ci.com/user/environment-variables/#Defining-Variables-in-Repository-Settings).
+Finally, set your Pantheon machine token and site machine name as environment variables [via the Travis UI](https://docs.travis-ci.com/user/environment-variables/#Defining-Variables-in-Repository-Settings).
 
 ```
 PANTHEON_MACHINE_TOKEN=TOKEN_YOU_GENERATED
+PANTHEON_SITE_NAME=PANTHEON_SITE_NAME
 ```
 
 Trying Things Out
