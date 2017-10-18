@@ -126,7 +126,7 @@ When you are statisifed with the above, and any additional QA steps like manual 
 Lando Reference
 ---------------
 
-You should definitely check out the [Lando docs](https://docs.devwithlando.io) for a full sweep on its capabilities but here are some helpers for this particular config. **YOU PROBABLY WANT TO LANDO START YOUR APP BEFORE YOU DO MOST OF THESE THINGS.**
+You should definitely check out the [Lando Pantheon docs](https://docs.devwithlando.io/tutorials/pantheon.html) for a full sweep on its capabilities but here are some helpers for this particular config. **YOU PROBABLY WANT TO LANDO START YOUR APP BEFORE YOU DO MOST OF THESE THINGS.**
 
 Unless otherwise indicated these should all be run from your repo root (eg the directory that contains the `.lando.yml` for your site).
 
@@ -209,20 +209,30 @@ lando phpunit -c core --testsuite unit --exclude-group Composer
 # Run behat commands
 lando behat
 # Run some behat tests
-lando behat --config=/app/tests/behat-lando.yml
+lando behat --config=/app/tests/behat-pantheon.yml
 ```
 
-### Platform.sh commands
+### Pantheon commands
 
 ```bash
-# List platform commands
-lando platform list
+# List terminus commands
+lando terminus list
 
-# Login to platform
-lando platform login
+# Pull stuff from pantheon
+# NOT THE BEST IDEA IN THIS SETUP
+lando pull
 
-# Import a database from master
-lando platform db:dump --gzip --file=dump.sql.gz --project=PROJECT_ID --environment=master
-lando db-import dump.sql.gz
-rm -f dump.sql.gz
+# Push stuff to pantheon
+# NOT THE BEST IDEA IN THIS SETUP
+lando push
+
+# Switch multidev env
+# NOT THE BEST IDEA IN THIS SETUP
+lando switch <ENV>
+
+# Advanced commands
+# Redis CLI
+lando redis-cli
+# Varnish admin
+lando varnishadm
 ```
