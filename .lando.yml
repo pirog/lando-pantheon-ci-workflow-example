@@ -5,14 +5,30 @@ config:
   env: dev
   site: lando-pantheon-workflow
   id: 34775439-5546-46a8-936b-5e55dde4b462
+events:
+  post-db-import:
+    - appserver: "cd $LANDO_MOUNT && composer install"
 services:
   appserver:
     overrides:
       services:
         environment:
-          BEHAT_PARAMS: '{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://nginx/"}, "Drupal\\DrupalExtension" : {"drush" :   {  "root":  "/app/web" }}}}'
+          BEHAT_PARAMS: >-
+            {"extensions" : {"Behat\\MinkExtension" : {"base_url" :
+            "http://nginx/"}, "Drupal\\DrupalExtension" : {"drush" :   {
+            "root":  "/app/web" }}}}
 tooling:
+  phplint:
+    service: appserver
+    cmd: /app/vendor/bin/phplint
+  phpcs:
+    service: appserver
+    cmd: /app/vendor/bin/phpcs
+  phpunit:
+    service: appserver
+    cmd: /app/vendor/bin/phpunit
   behat:
     service: appserver
-    cmd:
-      - "/app/vendor/bin/behat"
+    cmd: /app/vendor/bin/behat
+  # git:
+  #   service: appserver

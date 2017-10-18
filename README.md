@@ -1,98 +1,228 @@
-# Example Drops 8 Composer
+Killer Drupal 8 Workflow for Pantheon
+=====================================
 
-This repository can be used to set up a Composer-Managed Drupal 8 site on [Pantheon](https://pantheon.io).
+This project is meant to be forked and used as an easy-to-get-going start state for an awesome dev workflow that includes:
 
-[![CircleCI](https://circleci.com/gh/pantheon-systems/example-drops-8-composer.svg?style=shield)](https://circleci.com/gh/pantheon-systems/example-drops-8-composer)
-[![Pantheon example-drops-8-composer](https://img.shields.io/badge/dashboard-drops_8-yellow.svg)](https://dashboard.pantheon.io/sites/c401fd14-f745-4e51-9af2-f30b45146a0c#dev/code) 
-[![Dev Site example-drops-8-composer](https://img.shields.io/badge/site-drops_8-blue.svg)](http://dev-example-drops-8-composer.pantheonsite.io/)
+1. Canonical upstream repo on [GitHub](http://github.com)
+2. Local development and tooling with [Lando](http://docs.devwithlando.io)
+3. Hosting on [Pantheon](http://pantheon.io)
+4. Automatic manual QA environments via [Pantheon multi-dev](https://pantheon.io/docs/multidev/)
+6. Merge-to-master deploy-to-pantheon-dev pipeline
+7. Automated code linting, unit testing and behat testing with [Travis](https://travis-ci.org/)
 
-## Overview
+What You'll Need
+----------------
 
-This project contains only the canonical resources used to build a Drupal site for use on Pantheon. There are two different ways that it can be used:
+Before you kick off you'll need to make sure you have a few things:
 
-- Create a separate canonical repository on GitHub; maintain using a pull request workflow. **RECOMMENDED**
-- Build the full Drupal site and then install it on Pantheon; maintain using `terminus composer` and on-server development.
+1. A GitHub account, ideally with your SSH key(s) added
+2. A Pantheon account with a [Machine Token](https://pantheon.io/docs/machine-tokens/)
+3. A Travis CI account
+4. [Lando installed](https://docs.devwithlando.io/installation/installing.html)
+5. [Git installed](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)*
+6. (Optional) [ZenHub](https://www.zenhub.com/) for Kanban style issue management in GitHub
 
-The setup instructions vary based on which of these options you select.
+It is also definitely worth reading about the upstream [starter kit](https://github.com/pantheon-systems/example-drops-8-composer).
 
-## Pull Request Workflow
+* If you are using lando you can forgo the git installation (this is potentially useful for Windows devs) by uncommenting git in the tooling section of your .lando.yml. If you do this you'll need to run `lando git` instead of `git` for all the examples below.
 
-When using a pull request workflow, only the canonical resources (code, configuration, etc.) exists in the master repository, stored on GitHub. A build step is used to create the full Drupal site and automatically deploy it to Pantheon. This is the recommended way to use this project.
+Getting Started
+---------------
 
-### Setup
+### 1. Setup Pantheon
 
-For setup instructions, please see [Using GitHub Pull Requests with Composer and Drupal 8](https://pantheon.io/docs/guides/github-pull-requests/).
+Login to Pantheon and create a new D8 project through the user interface. After naming your site and completing the spin up visit your site and go through the Drupal installation process to get your DB dialed in.
 
-### Environment Variables
+### 2. Setup GitHub
 
-The [Terminus Build Tools Plugin](https://github.com/pantheon-systems/terminus-build-tools-plugin) automatically configures Circle CI to build your site. The following environment variables are defined:
+Visit [this start state](https://github.com/lando/lando-pantheon-ci-workflow-example) on GitHub and fork the project to the org or account of your choosing. Then `git clone` the repo and `cd` into it.
 
-- TERMINUS_TOKEN: The Terminus Machine token previously created.
-- GITHUB_TOKEN: Used by CircleCI to post comments on pull requests.
-- TERMINUS_SITE: The name of the Pantheon site that will be used to test your site.
-- TEST_SITE_NAME: Used to set the name of the test  site when installing Drupal.
-- ADMIN_EMAIL: Used to configure the email address to use when installing Drupal.
-- ADMIN_PASSWORD: Used to set the password for the uid 1 user during site installation.
-- GIT_EMAIL: Used to configure the git user’s email address for commits we make.
-
-If you need to modify any of these values, you may do so in the [Circle CI Environment Variable](https://circleci.com/docs/1.0/environment-variables/) configuration page.
-
-### SSH Keys
-
-A [public/private key pair](https://pantheon.io/docs/ssh-keys/) is created and added to Circle CI (the private key) and the Pantheon site (the public key). If you need to update your public key, you may do so with Terminus:
-```
-$ terminus ssh-key:add ~/.ssh/id_rsa.pub
+```bash
+git clone https://github.com/lando/lando-pantheon-ci-workflow-example mysite
+cd mysite
 ```
 
-## Pantheon "Standalone" Development
+### 3. Setup Local Lando and Connect to Pantheon
 
-This project can also be used to do traditional "standalone" development on Pantheon using on-server development. In this mode, the canonical repository is immediately built out into a full Drupal site, and the results are committed to the Pantheon repository. Thereafter, no canoncial repository is used; all development will be done exclusively using the Pantheon database.
+Let's start by spinning up a local copy of our Pantheon site with Lando.
 
-When doing "standalone" development, this project can either be used as an upstream repository, or it can be set up manually. The instructions for doing either follows in the section below.
+This should spin up the services to run your app (eg `php`, `nginx`, `mariabdb`, `redis`, `solr`, `varnish`) and the tools you need to start development (eg `terminus`, `drush`, `composer`, `drupal console`). This will install a bunch of deps the first time you run it but when it is done you should end up with some URLs you can use to visit your local site.
 
-### As an Upstream
+```bash
+# Connect to pantheon
+cd /path/to/my/repo
+lando init --recipe=pantheon
 
-Create a custom upstream for this project following the instructions in the [Pantheon Custom Upstream documentation](https://pantheon.io/docs/custom-upstream/). When you do this, Pantheon will automatically run composer install to populate the web and vendor directories each time you create a site.
+# Start the app
+lando start
 
-### Manual Setup
-
-Enter the commands below to create a a new site on Pantheon and push a copy of this project up to it.
+# Pull the database and files
+# Run lando pull -- -h for options
+land pull
 ```
-$ SITE="my-site"
-$ terminus site:create $SITE "My Site" "Drupal 8" --org="My Team"
-$ composer create-project pantheon-systems/example-drops-8-composer $SITE
-$ cd $SITE
-$ composer prepare-for-pantheon
-$ git init
-$ git add -A .
-$ git commit -m "Initial commit"
-$ terminus  connection:set $SITE.dev git
-$ PANTHEON_REPO=$(terminus connection:info $SITE.dev --field=git_url)
-$ git remote add origin $PANTHEON_REPO
-$ git push --force origin master
-$ terminus drush $SITE.dev -- site-install --site-name="My Drupal Site"
-$ terminus dashboard:view $SITE
+
+If you are interested in tweaking your setup check out the comments in your app's `.lando.yml`. Or you can augment your Lando spin up with additional services or tools by checking out the [advanced Lando docs](https://docs.devwithlando.io/tutorials/setup-additional-services.html).
+
+### 4. Setup Travis CI
+
+You will want to start by doing Steps 1 and 2 in the Travis [getting started docs](https://docs.travis-ci.com/user/getting-started/). We already have a pre-baked `.travis.yml` file for you so you don't need to worry about that unless you want to tweak it.
+
+Finally, set your Pantheon machine token as an environment variable [via the Travis UI](https://docs.travis-ci.com/user/environment-variables/#Defining-Variables-in-Repository-Settings).
+
 ```
-Replace my-site with the name that you gave your Pantheon site. Customize the parameters of the `site:create` and `site-install` lines to suit.
-
-Type `terminus drush sitename.env -- uli` to get a user reset link to set a username and password for an admin.
-
-### Installing Drupal
-
-Note that this example repository sets the installation profile to 'standard' in settings.php, so that the installer will not need to modify the settings file. If you would like to install a different profile, modify settings.php appropriately before installing your site.
-
-### Updating Your Site
-
-When using this repository to manage your Drupal site, you will no longer use the Pantheon dashboard to update your Drupal version. Instead, you will manage your updates using Composer. Updates can be applied either directly on Pantheon, by using Terminus, or on your local machine.
-
-#### Update with Terminus
-
-Install [Terminus 1](https://pantheon.io/docs/terminus/) and the [Terminus Composer plugin](https://github.com/pantheon-systems/terminus-composer-plugin).  Then, to update your site, ensure it is in SFTP mode, and then run:
+PANTHEON_MACHINE_TOKEN=TOKEN_YOU_GENERATED
 ```
-terminus composer <sitename>.<dev> update
+
+Trying Things Out
+-----------------
+
+Let's go through a [GitHub flow](https://guides.github.com/introduction/flow/) example!
+
+This is a trivial example which deploys all merges into the `master` branch to the Pantheon dev environment.
+
+### 1. Set up a topic branch
+
+```bash
+# Go into the repo
+cd /path/to/my/github/repo
+
+# Checkout master and get the latest and greatest
+git checkout master
+git pull origin master
+
+# Spin up a well named topic branch eg ISSUE_NUMBER-DESCRIPTION
+git checkout -b 1-fixes-that-thing
 ```
-Other commands will work as well; for example, you may install new modules using `terminus composer <sitename>.<dev> require drupal/pathauto`.
 
-#### Update on your local machine
+### 2. Do the dev, commit and push the codes
 
-You may also place your site in Git mode, clone it locally, and then run composer commands from there.  Commit and push your files back up to Pantheon as usual.
+```
+# Do some awesome dev
+
+# Git commit with a message that matches the issue number
+git add -A
+git commit -m "#1: Describes what i did"
+
+# Push the branch to GitHub
+git push origin 1-fixes-that-thing
+```
+
+* Check out the Lando Reference section below for some tips on how to run tests before you push. This can save a lot of time and reduce the potential shame you feel for failing the automated QA
+
+### 3. Open a PR and do manual and automated testing
+
+Begin by [opening a pull request](https://help.github.com/articles/creating-a-pull-request/). This will trigger the spin up of a QA environment for manual testing and a Travis build for automated testing.
+
+Here is an example PR with:
+
+* [PR on GitHub](https://github.com/thinktandem/platformsh-example-drupal8/pull/2)
+* [QA Environment on Platform.sh](http://pr-2-tcs3n7y-2a6htdqmmpchu.us.platform.sh/)
+* [Travis PR Build](https://travis-ci.org/thinktandem/platformsh-example-drupal8/builds/289355899?utm_source=github_status&utm_medium=notification)
+
+### 4. Deploy
+
+When you are statisifed with the above, and any additional QA steps like manual code review you can [merge the pull request](https://help.github.com/articles/merging-a-pull-request/). This will deploy the feature to production.
+
+Lando Reference
+---------------
+
+You should definitely check out the [Lando docs](https://docs.devwithlando.io) for a full sweep on its capabilities but here are some helpers for this particular config. **YOU PROBABLY WANT TO LANDO START YOUR APP BEFORE YOU DO MOST OF THESE THINGS.**
+
+Unless otherwise indicated these should all be run from your repo root (eg the directory that contains the `.lando.yml` for your site).
+
+### Generic Ccommands
+
+```bash
+# List all available lando commands for this app
+lando
+
+# Start my site
+lando start
+
+# Stop my site
+lando stop
+
+# Restart my site
+lando restart
+
+# Get important connection info
+lando info
+
+# Other helpful things
+# Rebuild all containers and build process steps
+lando rebuild
+# Destroy the containers and tools for this app
+lando destroy
+# Get info on lando service logs
+lando logs
+# Get a publically accessible URL. Run lando info to get the proper localhost address
+lando share -u http://localhost:32813
+# "SSH" into the appserver
+lando ssh
+
+# Run help to get more info
+lando ssh -- --help
+```
+
+### Development commands
+
+```bash
+# Run composer things
+lando composer install
+lando composer update
+
+# Run php things
+lando php -v
+lando php -i
+
+# Run drush commands
+# replace web if you've moved your webroot to a difference subdirectory
+cd web
+lando drush status
+lando drush cr
+
+# Run drupal console commands
+# replace web if you've moved your webroot to a difference subdirectory
+cd web
+lando drupal
+```
+
+### Testing commands
+
+```bash
+# Lint code
+lando phplint
+
+# Run phpcs commands
+lando phpcs
+# Check drupal code standards
+lando phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer
+lando phpcs -n --report=full --standard=Drupal --ignore=*.tpl.php --extensions=install,module,php,inc web/modules web/themes web/profiles
+
+# Run phpunit commands
+# replace web if you've moved your webroot to a difference subdirectory
+cd web
+lando phpunit
+# Run some phpunit tests
+lando phpunit -c core --testsuite unit --exclude-group Composer
+
+# Run behat commands
+lando behat
+# Run some behat tests
+lando behat --config=/app/tests/behat-lando.yml
+```
+
+### Platform.sh commands
+
+```bash
+# List platform commands
+lando platform list
+
+# Login to platform
+lando platform login
+
+# Import a database from master
+lando platform db:dump --gzip --file=dump.sql.gz --project=PROJECT_ID --environment=master
+lando db-import dump.sql.gz
+rm -f dump.sql.gz
+```

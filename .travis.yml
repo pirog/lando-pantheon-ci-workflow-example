@@ -4,11 +4,6 @@ php:
 services:
 - docker
 
-# Encrypted variable for pantheon machine token
-env:
-  global:
-  - secure: WETOC8IRvuIC+TybdbWrJ90aD+/yxlRpr+wrIlsc1Ukn8pbzOlBVYUW0YBEmyaqSHpWNG6vKbIhfdzK/MmHuh3lw5TOmnEk/8/gBXMTu2RKrHfNKWs3stf07EP4ZDJhs5I7AmHjz1xjnadfKJg1/NDY3F2eVqaYArdyaM/lIPWJ1Xh7xq/TqEOt3v4LsRoBg+I79m4a+wAVcQN3/Ylm87sSsNdcPwXlZB5YS7VkzGJVSyoG+n6WGLwiEEY+euf9aGcLn+w2yFea9K9QcPndHIR28i6WCWS/j7F/qhYlw04eBcarvuQeTWCS5IsAF4GD2/wXH/CvREnohmilKPnNlBa4zHE7Heul2qAviJwoJ0AVeqsf9S81xHJfflffUqU7gQUythEXmTGN49PSp+vE2Z5+39RQk52a8tYLe24Z/4Fc64cQFOwSnapPpdTvsFGiz61G7NR04/jWVsx8b6/KNpSbKcc6coKFpPGjKyJgrguQ4wRyXVkIeAA7+OhUvQtss71iLX9QgXDZN9Uo9+dw/SXZWpiayiA+wR6adR7YEZTLjkZV46gQfxNXzucYGINuR62yjkJFeTtlEGc3zeQJqnvIoH1JfOTVgEYeh6vDElnAcrbrb7kxYdoPx+rp42UCvlWddLBC2yzWoKB2lT2VFAjP53WhpjZ0GWXMxvrOiE3k=
-
 # Install lando
 before_install:
   - sudo apt-get -y update
@@ -23,6 +18,19 @@ script:
   # Get our built out lando site running on travis
   - lando start -- -v
   - lando composer install
+
+  # Run non-db required tests eg linting/code standards/unit tests
+  # Lint the codez
+  - lando phplint
+
+  # Check code standards
+  # lando phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer
+  # lando phpcs -n --report=full --standard=Drupal --ignore=*.tpl.php --extensions=install,module,php,inc web/modules web/themes web/profiles
+
+  # Run unit tests.
+  # - lando composer drupal-unit-tests
+
+  # Get the DB for more advanced things
   - lando terminus auth:login --machine-token=$PANTHEON_MACHINE_TOKEN
   - lando pull --code=none --database=dev --files=dev --rsync
 
@@ -31,13 +39,47 @@ script:
   - lando drush cr | grep "rebuild complete."
   - cd ..
 
-  # Run unit tests.
-  # Note: THIS WILL NOT REPORT AS FAILED EVEN IF IT FAILS
-  # YOU NEED TO REMOVE `|| true` for that
-  - lando composer drupal-unit-tests || true
-
   # Run Behat tests.
   - lando behat --config=/app/tests/behat-pantheon.yml
 
+  # Spin up multidev branch
+  # 1. Check to see if this is a pull request build. there is a travis_pr envvar to check
+  # 2. if true:
+    # need to check if multidev already exists? maybe its fine to try to create again and fail
+    # If we need to create multidev
+    # - create a multidev environment based on the TRAVIS_BRANCH envvar
+    # - Make sure we are obeying the 11 char rule
+
+    # pull pantheon git repo into a separate directory
+    # - cd /tmp
+    # - git clone pantheonrep pantheon-build
+    # cd pantheon-build
+    # rm -rf /tmp/pantheon-build/*
+    # cp -rf $TRAVIS_REPO_ROOT/ /tmp/pantheon-build/
+    # git config setup
+    #- git config --global user.email "$GIT_EMAIL"
+    #- git config --global user.name "Circle CI"
+    #- git config --global core.fileMode false
+    # git add -A
+    # git commit -m "travis build whatever"
+    # git push origin multidevbranch
+    # run drush cim
+    # run drush dbupdate
+    # run drush cr
+
   # Clean up posted SSH key
   - lando terminus ssh-key:remove $(ssh-keygen -l -f ~/.lando/keys/pantheon.lando.id_rsa.pub | awk -F' ' '{print $2}' | sed 's/://g')
+
+# merge into master via depoy script
+#deploy:
+#  provider: script
+#  script: scripts/deploy.sh $MULTIDEV_BRANCH
+#    on:
+#      branch: master
+
+# the script does:
+# - terminus multidev:merge-to-dev $MULTIDEV_BRANCH
+# - termius mulitdev:delete $MULTIDEV_BRANCH
+# - terminus drush cim
+# - terminus drush updatedb
+# - terminus drush cr

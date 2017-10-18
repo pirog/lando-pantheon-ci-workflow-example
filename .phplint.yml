@@ -1,0 +1,13 @@
+path:
+  - ./web/modules
+  - ./web/profiles
+  - ./web/themes
+  - ./web/sites/default
+jobs: 10
+extensions:
+  - php
+  - inc
+  - module
+  - theme
+exclude:
+  - vendor
