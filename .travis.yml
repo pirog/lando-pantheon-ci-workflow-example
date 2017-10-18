@@ -54,6 +54,8 @@ script:
       lando ssh -c "cd /tmp && git clone ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git pantheon_build"
       lando ssh -u root -c "rm -rf /tmp/pantheon_build"
       lando ssh -c "cp -rfa /app/. /tmp/pantheon_build"
+      lando ssh -c "git -C /tmp/pantheon_build fetch --all"
+      lando ssh -c "git -C /tmp/pantheon_build branch -r"
       lando ssh -c "git -C /tmp/pantheon_build add -A"
       lando ssh -c "git -C /tmp/pantheon_build checkout $DEFAULT_ENV"
       lando ssh -c "git -C /tmp/pantheon_build commit -m '$TRAVIS_BUILD_NUMBER- $TRAVIS:TRAVIS_COMMIT_MESSAGE'"
