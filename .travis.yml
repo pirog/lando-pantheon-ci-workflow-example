@@ -18,6 +18,9 @@ script:
   # Get our built out lando site running on travis
   - lando start -- -v
   - lando composer install
+  # Do needed things to get this repo transformed to what pantheon expects
+  - lando composer prepare-for-pantheon
+
 
   # Run non-db required tests eg linting/code standards/unit tests
   # Lint the codez
@@ -53,7 +56,6 @@ script:
       fi
       ls -lsa
       pwd
-      lando composer prepare-for-pantheon
       lando ssh -c "git remote add pantheon ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git"
       lando ssh -c "git fetch pantheon"
       lando ssh -c "git checkout $DEFAULT_ENV"
