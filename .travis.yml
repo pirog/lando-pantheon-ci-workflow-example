@@ -51,32 +51,14 @@ script:
       if ! lando terminus multidev:list $PANTHEON_SITE_NAME --field id | grep "$DEFAULT_ENV"; then
         lando terminus multidev:create $PANTHEON_SITE_NAME.dev $DEFAULT_ENV
       fi
-      lando ssh -c "cd /tmp && git clone ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git pantheon_build"
-      lando ssh -u root -c "rm -rf /tmp/pantheon_build/*"
-      lando ssh -c "cp -rfa /app/* /tmp/pantheon_build/"
-      lando ssh -c "git -C /tmp/pantheon_build fetch origin"
-      lando ssh -c "git -C /tmp/pantheon_build branch -r"
-      lando ssh -c "git -C /tmp/pantheon_build checkout $DEFAULT_ENV"
-      lando ssh -c "git -C /tmp/pantheon_build checkout .gitignore"
-      lando ssh -c "git -C /tmp/pantheon_build add -A"
-      lando ssh -c "git -C /tmp/pantheon_build commit -m '$TRAVIS_BUILD_NUMBER- $TRAVIS_COMMIT_MESSAGE' --allow-empty"
-      lando ssh -c "git -C /tmp/pantheon_build push origin $DEFAULT_ENV"
+      lando composer prepare-for-pantheon
+      lando ssh -c "git remote add pantheon ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git"
+      lando ssh -c "git fetch pantheon"
+      lando ssh -c "git checkout $DEFAULT_ENV"
+      lando ssh -c "git add -A"
+      lando ssh -c "git commit --amend --no-edit"
+      lando ssh -c "git push pantheon $DEFAULT_ENV"
     fi
-
-  # Spin up multidev branch
-    # pull pantheon git repo into a separate directory
-    # rm -rf /tmp/pantheon-build/*
-    # cp -rf $TRAVIS_REPO_ROOT/ /tmp/pantheon-build/
-    # git config setup
-    #- git config --global user.email "$GIT_EMAIL"
-    #- git config --global user.name "Circle CI"
-    #- git config --global core.fileMode false
-    # git add -A
-    # git commit -m "travis build whatever"
-    # git push origin multidevbranch
-    # run drush cim
-    # run drush dbupdate
-    # run drush cr
 
   # Clean up posted SSH key
   - lando terminus ssh-key:remove $(ssh-keygen -l -f ~/.lando/keys/pantheon.lando.id_rsa.pub | awk -F' ' '{print $2}' | sed 's/://g')
