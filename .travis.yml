@@ -63,16 +63,9 @@ script:
   # Clean up posted SSH key
   - lando terminus ssh-key:remove $(ssh-keygen -l -f ~/.lando/keys/pantheon.lando.id_rsa.pub | awk -F' ' '{print $2}' | sed 's/://g')
 
-# merge into master via depoy script
-#deploy:
-#  provider: script
-#  script: scripts/deploy.sh $MULTIDEV_BRANCH
-#    on:
-#      branch: master
-
-# the script does:
-# - terminus multidev:merge-to-dev $MULTIDEV_BRANCH
-# - termius mulitdev:delete $MULTIDEV_BRANCH
-# - terminus drush cim
-# - terminus drush updatedb
-# - terminus drush cr
+# Merge into master via deploy script
+deploy:
+  provider: script
+  script: scripts/travis/deploy.sh $DEFAULT_ENV
+  on:
+    branch: master
