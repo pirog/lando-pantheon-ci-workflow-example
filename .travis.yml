@@ -6,7 +6,7 @@ services:
 
 # Install lando
 before_install:
-  - sudo apt-get -y update
+  - sudo apt-get -y update || true
   - sudo apt-get -y install cgroup-bin curl
   - curl -fsSL -o /tmp/lando-latest.deb http://installer.kalabox.io/lando-latest-dev.deb
   - sudo dpkg -i /tmp/lando-latest.deb
@@ -18,14 +18,16 @@ script:
   # Get our built out lando site running on travis
   - lando start -- -v
   - lando composer install
+  # Do needed things to get this repo transformed to what pantheon expects
+  - lando composer prepare-for-pantheon
 
   # Run non-db required tests eg linting/code standards/unit tests
   # Lint the codez
   - lando phplint
 
   # Check code standards
-  # lando phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer
-  # lando phpcs -n --report=full --standard=Drupal --ignore=*.tpl.php --extensions=install,module,php,inc web/modules web/themes web/profiles
+  # - lando phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer
+  # - lando phpcs -n --report=full --standard=Drupal --ignore=*.tpl.php --extensions=install,module,php,inc web/modules web/themes web/profiles
 
   # Run unit tests.
   # - lando composer drupal-unit-tests
@@ -42,44 +44,29 @@ script:
   # Run Behat tests.
   - lando behat --config=/app/tests/behat-pantheon.yml
 
-  # Spin up multidev branch
-  # 1. Check to see if this is a pull request build. there is a travis_pr envvar to check
-  # 2. if true:
-    # need to check if multidev already exists? maybe its fine to try to create again and fail
-    # If we need to create multidev
-    # - create a multidev environment based on the TRAVIS_BRANCH envvar
-    # - Make sure we are obeying the 11 char rule
-
-    # pull pantheon git repo into a separate directory
-    # - cd /tmp
-    # - git clone pantheonrep pantheon-build
-    # cd pantheon-build
-    # rm -rf /tmp/pantheon-build/*
-    # cp -rf $TRAVIS_REPO_ROOT/ /tmp/pantheon-build/
-    # git config setup
-    #- git config --global user.email "$GIT_EMAIL"
-    #- git config --global user.name "Circle CI"
-    #- git config --global core.fileMode false
-    # git add -A
-    # git commit -m "travis build whatever"
-    # git push origin multidevbranch
-    # run drush cim
-    # run drush dbupdate
-    # run drush cr
+  # Do the multidev as needed
+  - |
+    if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      BRANCH=$(echo $TRAVIS_PULL_REQUEST_BRANCH | grep -v '^\(master\|[0-9]\+.x\)$')
+      PR_ENV=${BRANCH:+pr-$BRANCH}
+      DEFAULT_ENV=$(echo ${PR_ENV:-$TRAVIS_PULL_REQUEST_BRANCH} | tr '[:upper:]' '[:lower:]' | sed 's/[^0-9a-z-]//g' | cut -c -11 | sed 's/-$//')
+      if ! lando terminus multidev:list $PANTHEON_SITE_NAME --field id | grep "$DEFAULT_ENV"; then
+        lando terminus multidev:create $PANTHEON_SITE_NAME.dev $DEFAULT_ENV
+      fi
+      lando ssh -c "cd /tmp && git clone -b $DEFAULT_ENV ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git pantheon_build"
+      lando ssh -u root -c "rm -rf /tmp/pantheon_build/*"
+      lando ssh -c "cp -rf /app/ /tmp/pantheon_build/"
+      lando ssh -c "git -C /tmp/pantheon_build add -A"
+      lando ssh -c "git -C /tmp/pantheon_build commit -m '$TRAVIS_COMMIT_MESSAGE'"
+      lando ssh -c "git -C /tmp/pantheon_build push origin $DEFAULT_ENV"
+    fi
 
   # Clean up posted SSH key
   - lando terminus ssh-key:remove $(ssh-keygen -l -f ~/.lando/keys/pantheon.lando.id_rsa.pub | awk -F' ' '{print $2}' | sed 's/://g')
 
-# merge into master via depoy script
-#deploy:
-#  provider: script
-#  script: scripts/deploy.sh $MULTIDEV_BRANCH
-#    on:
-#      branch: master
-
-# the script does:
-# - terminus multidev:merge-to-dev $MULTIDEV_BRANCH
-# - termius mulitdev:delete $MULTIDEV_BRANCH
-# - terminus drush cim
-# - terminus drush updatedb
-# - terminus drush cr
+# Merge into master via deploy script
+deploy:
+  provider: script
+  script: scripts/travis/deploy.sh $DEFAULT_ENV
+  on:
+    branch: master
