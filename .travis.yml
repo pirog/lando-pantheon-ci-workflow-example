@@ -51,6 +51,8 @@ script:
       if ! lando terminus multidev:list $PANTHEON_SITE_NAME --field id | grep "$DEFAULT_ENV"; then
         lando terminus multidev:create $PANTHEON_SITE_NAME.dev $DEFAULT_ENV
       fi
+      ls -lsa
+      pwd
       lando composer prepare-for-pantheon
       lando ssh -c "git remote add pantheon ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git"
       lando ssh -c "git fetch pantheon"
