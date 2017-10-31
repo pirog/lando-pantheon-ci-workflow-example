@@ -54,8 +54,8 @@ script:
         lando terminus multidev:create $PANTHEON_SITE_NAME.dev $DEFAULT_ENV
       fi
       lando ssh -c "cd /tmp && git clone -b $DEFAULT_ENV ssh://codeserver.dev.\${PANTHEON_SITE}@codeserver.dev.\${PANTHEON_SITE}.drush.in:2222/~/repository.git pantheon_build"
-      lando ssh -u root -c "rm -rf /tmp/pantheon_build/*
-      lando ssh -c "cp -rf /app/ /tmp/pantheon_build/
+      lando ssh -u root -c "rm -rf /tmp/pantheon_build/*"
+      lando ssh -c "cp -rf /app/ /tmp/pantheon_build/"
       lando ssh -c "git -C /app add -A"
       lando ssh -c "git -C /app commit -m "$TRAVIS_COMMIT_MESSAGE"
       lando ssh -c "git -C /app push origin $DEFAULT_ENV"
